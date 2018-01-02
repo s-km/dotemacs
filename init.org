@@ -1,0 +1,277 @@
+#+TITLE: My Emacs Config
+
+* About
+
+  I decided to give the [[https:en.wikipedia.org/wiki/Literate_programming][literate programming]] meme a try, since it seems
+  pretty suited to things like this where the basic structure/skeleton
+  of the code (hopefully) doesn't change around much and it's easy to
+  forget what each little function or variable does. I also wanted an
+  excuse to play around with =org-mode= and this seemed like a good way
+  to do it while getting a shareable, decent looking config file out of
+  it.
+  
+  I'm still pretty new to emacs, so this will probably be getting
+  updated fairly often. Can't really guarantee that if you =git clone=
+  this you'll have a perfect, working emacs setup - if that's what
+  you're looking for, =spacemacs= is pretty much emacs with a bunch of
+  popular defaults configured for you out of the box. If you do use
+  this, it's probably best to just copy bits and pieces and see how
+  they work for you and interact with your own config.
+
+* Init
+
+  Entry point for =my/load-literate-config=, idea stolen from
+  [[https:github.com/wasamasa][wasamasa]]. Not really much faster thatn just using =org-babel= but the
+  error messages are a lot easier to work with, so I'm sticking to it
+  for now.
+
+  If you really mess things up, you can =M-x org-babel-tangle= and the
+  config in here will get exported as a regular =.el= file to whatever
+  file you specify in the properties section below. The error messages
+  are usually pretty clear, so you shouldn't need to use this much at all.
+  :PROPERTIES:
+  :header-args:emacs-lisp: :tangle ./tangled.el
+  :END:
+
+  #+BEGIN_SRC emacs-lisp
+    (package-initialize)
+    (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+
+    (unless (package-installed-p 'use-package)
+      (package-refresh-contents)
+      (package-install 'use-package))
+    (eval-when-compile
+      (require 'use-package))
+    (setq use-package-verbose t)
+    (setq use-package-always-ensure t)
+  #+END_SRC
+
+* General
+** Appearance
+   
+   #+BEGIN_SRC emacs-lisp
+    (load-theme 'gruvbox t)
+
+    (setq ring-bell-function 'ignore)
+
+    (setq-default indicate-empty-lines t
+                  indent-tabs-mode nil
+                  tab-width 2)
+
+    (set-fringe-mode '(0 . 0))
+
+    (prefer-coding-system 'utf-8)
+    (setq inhibit-compacting-font-caches t)
+
+    (setq linum-format " %d ")
+    (global-linum-mode t)
+
+    (menu-bar-mode -1)
+    (tool-bar-mode -1)
+    (scroll-bar-mode -1)
+
+    (setq show-paren-delay 0)
+    (show-paren-mode t)
+
+    (column-number-mode t)
+  #+END_SRC
+
+** Backup
+
+   #+BEGIN_SRC emacs-lisp
+     (setq backup-directory-alist
+           '(("." . "~/.emacs.d/backups")))
+   #+END_SRC
+
+** Startup Behaviour
+   
+   #+BEGIN_SRC emacs-lisp
+     (setq custom-safe-themes t
+           inhibit-splash-screen t
+           inhibit-startup-message t
+           inhibit-startup-echo-area-message t)
+
+    (setq debug-on-error t)
+   #+END_SRC
+
+* Packages
+** Emacs UI
+*** Themes
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package cyberpunk-theme
+        :defer t)
+      (use-package dracula-theme
+        :defer t)
+      (use-package gruvbox-theme
+        :defer t)
+      (use-package sunburn-theme
+        :defer t)
+      (use-package zenburn-theme
+        :defer t)
+    #+END_SRC
+
+*** Telephone Line
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package telephone-line
+        :after (evil)
+        :config
+        (telephone-line-evil-config))
+    #+END_SRC
+
+*** Neotree
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package neotree
+        :init
+        (add-hook 'neotree-mode-hook
+                  (lambda ()
+                    (evil-define-key 'normal neotree-mode-map [tab] 'neotree-enter)
+                    (evil-define-key 'normal neotree-mode-map (kbd "j") 'neotree-next-line)
+                    (evil-define-key 'normal neotree-mode-map (kbd "k") 'neotree-previous-line)
+                    (evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-change-root)))
+
+        :config
+        (global-set-key [f8] 'neotree-toggle)
+        (setq neo-theme 'arrow))
+    #+END_SRC
+
+** Company
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package company
+       :diminish company-mode
+       :config
+       (global-company-mode)
+
+       (defun my/python-mode-hook ()
+         (add-to-list 'company-backends 'company-jedi))
+       (add-hook 'python-mode-hook 'my/python-mode-hook)
+
+       (setq company-selection-wrap-around t)
+       (define-key company-active-map (kbd "ESC") 'company-abort)
+       (define-key company-active-map [tab] 'company-complete-common-or-cycle))
+   #+END_SRC
+
+** Evil
+
+   #+BEGIN_SRC emacs-lisp
+     (defun my-evil-leader-config ()
+       "<leader> bindings for evil"
+       (evil-leader/set-leader ",")
+       (evil-leader/set-key
+         "," 'other-window
+         "x" 'helm-M-x))
+
+     (use-package evil
+       :config
+       (evil-mode t)
+
+       (use-package evil-leader
+         :config
+         (global-evil-leader-mode)
+         (my-evil-leader-config))
+
+       (use-package evil-surround
+         :config
+         (global-evil-surround-mode)))
+
+     (evil-add-hjkl-bindings occur-mode-map 'emacs
+       (kbd "/") 'evil-search-forward
+       (kbd "n") 'evil-search-next
+       (kbd "N") 'evil-search-previous
+       (kbd "C-d") 'evil-scroll-down
+       (kbd "C-u") 'evil-scroll-up)
+
+     (evil-add-hjkl-bindings package-menu-mode-map 'emacs)
+   #+END_SRC
+
+** Helm
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package helm
+       :config
+       (helm-mode t))
+   #+END_SRC
+
+** Magit
+** Languages
+*** Haskell
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package haskell-mode
+        :mode "\\.hs\\'"
+        :defer t)
+    #+END_SRC
+
+*** Python
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package elpy
+        :defer t
+        :config
+        (elpy-enable)
+        (setq elpy-rpc-backend "jedi"))
+
+      (use-package company-jedi)
+
+      (use-package virtualenvwrapper
+        :defer t
+        :config
+        (venv-initialize-eshell))
+    #+END_SRC
+
+** Novel
+** Yasnippet
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package yasnippet
+       :defer t
+       :mode ("/\\.emacs\\.d/snippets/" . snippet-mode)
+       :init
+       (yas-global-mode t)
+       :config
+       (setq yas-snippet-dirs
+             '("~/.emacs.d/snippets")))
+   #+END_SRC
+
+* Orgmode Settings
+
+  #+BEGIN_SRC emacs-lisp
+    (defun my/modules ()
+      (add-to-list 'org-modules 'org-habit))
+    (eval-after-load "org" '(my/modules))
+
+    (defface org-block-background
+      '((t (:background "#353231")))
+      "Face used for src block background")
+
+    (setq org-src-fontify-natively t
+          org-hide-emphasis-markers t
+          org-src-tab-acts-natively t)
+  #+END_SRC
+
+* =my/= Functions
+
+  #+BEGIN_SRC emacs-lisp
+    ;; doesn't quite work
+    (defun my/init-reload (&optional refresh)
+      "Reloads init.el, optionally refreshing the package list beforehand"
+      (interactive
+       (list (y-or-n-p "Refresh package contents? ")))
+      (if refresh
+          (package-refresh-contents)
+        (load-file "~/.emacs.d/init.el")))
+
+    (defun my/goto-init-org ()
+      "More convenient access to init.org compared to C-x C-f"
+      (interactive)
+      (find-file "~/.emacs.d/init.org"))
+  #+END_SRC
+
+* Global Key Bindings 
+
+  #+BEGIN_SRC emacs-lisp
+    (global-set-key [(control tab)] 'other-window)
+  #+END_SRC

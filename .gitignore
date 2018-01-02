@@ -1,0 +1,5 @@
+.cache
+elpa/
+eshell/
+auto-save-list/
+server/
