@@ -80,7 +80,7 @@
 
    #+BEGIN_SRC emacs-lisp
      (setq backup-directory-alist
-           '(("." . "~/.emacs.d/backups")))
+           '(("." . "~/.emacs.d/backup")))
    #+END_SRC
 
 ** Startup Behaviour
@@ -192,7 +192,8 @@
    #+BEGIN_SRC emacs-lisp
      (use-package helm
        :config
-       (helm-mode t))
+       (helm-mode t)
+       (setq helm-M-x-fuzzy-match t))
    #+END_SRC
 
 ** Magit
@@ -210,11 +211,9 @@
     #+BEGIN_SRC emacs-lisp
       (use-package elpy
         :defer t
+        :hook (python-mode . elpy-mode)
         :config
-        (elpy-enable)
-        (setq elpy-rpc-backend "jedi"))
-
-      (use-package company-jedi)
+        (elpy-enable))
 
       (use-package virtualenvwrapper
         :defer t
@@ -255,13 +254,12 @@
 * =my/= Functions
 
   #+BEGIN_SRC emacs-lisp
-    ;; doesn't quite work
     (defun my/init-reload (&optional refresh)
       "Reloads init.el, optionally refreshing the package list beforehand"
       (interactive
        (list (y-or-n-p "Refresh package contents? ")))
-      (if refresh
-          (package-refresh-contents)
+      (progn
+        (when refresh (package-refresh-contents))
         (load-file "~/.emacs.d/init.el")))
 
     (defun my/goto-init-org ()
@@ -274,4 +272,5 @@
 
   #+BEGIN_SRC emacs-lisp
     (global-set-key [(control tab)] 'other-window)
+    (global-set-key (kbd "M-x") 'helm-M-x)
   #+END_SRC

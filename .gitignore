@@ -1,5 +1,6 @@
 .cache
+auto-save-list/
+backup/
 elpa/
 eshell/
-auto-save-list/
 server/
