@@ -9,7 +9,7 @@
   excuse to play around with =org-mode= and this seemed like a good way
   to do it while getting a shareable, decent looking config file out of
   it.
-  
+
   I'm still pretty new to emacs, so this will probably be getting
   updated fairly often. Can't really guarantee that if you =git clone=
   this you'll have a perfect, working emacs setup - if that's what
@@ -37,6 +37,9 @@
     (package-initialize)
     (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 
+    (setq exec-path (append exec-path '("c:/Program Files/git/mingw64/bin/git.exe"
+                                        "c:/Program Files/git/usr/bin/")))
+
     (unless (package-installed-p 'use-package)
       (package-refresh-contents)
       (package-install 'use-package))
@@ -48,7 +51,7 @@
 
 * General
 ** Appearance
-   
+
    #+BEGIN_SRC emacs-lisp
     (load-theme 'gruvbox t)
 
@@ -84,7 +87,7 @@
    #+END_SRC
 
 ** Startup Behaviour
-   
+
    #+BEGIN_SRC emacs-lisp
      (setq custom-safe-themes t
            inhibit-splash-screen t
@@ -92,6 +95,12 @@
            inhibit-startup-echo-area-message t)
 
     (setq debug-on-error t)
+   #+END_SRC
+
+** Better Defaults
+
+   #+BEGIN_SRC emacs-lisp
+     (fset 'yes-or-no-p 'y-or-n-p)
    #+END_SRC
 
 * Packages
@@ -162,11 +171,13 @@
        (evil-leader/set-leader ",")
        (evil-leader/set-key
          "," 'other-window
-         "x" 'helm-M-x))
+         "x" 'helm-M-x
+         "i" 'helm-imenu))
 
      (use-package evil
        :config
        (evil-mode t)
+       (evil-select-search-module 'evil-search-module 'evil-search)
 
        (use-package evil-leader
          :config
@@ -197,6 +208,11 @@
    #+END_SRC
 
 ** Magit
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package magit)
+   #+END_SRC
+
 ** Languages
 *** Haskell
 
@@ -235,7 +251,7 @@
              '("~/.emacs.d/snippets")))
    #+END_SRC
 
-* Orgmode Settings
+* Orgmode
 
   #+BEGIN_SRC emacs-lisp
     (defun my/modules ()
@@ -251,6 +267,10 @@
           org-src-tab-acts-natively t)
   #+END_SRC
 
+* IRC
+  #+BEGIN_SRC emacs-lisp
+    (setq erc-nick "s2mitrov")
+  #+END_SRC
 * =my/= Functions
 
   #+BEGIN_SRC emacs-lisp
@@ -261,16 +281,15 @@
       (progn
         (when refresh (package-refresh-contents))
         (load-file "~/.emacs.d/init.el")))
-
-    (defun my/goto-init-org ()
-      "More convenient access to init.org compared to C-x C-f"
-      (interactive)
-      (find-file "~/.emacs.d/init.org"))
   #+END_SRC
 
-* Global Key Bindings 
+* Shortcuts and Keybindings
 
   #+BEGIN_SRC emacs-lisp
     (global-set-key [(control tab)] 'other-window)
     (global-set-key (kbd "M-x") 'helm-M-x)
+
+    (set-register ?p (cons 'file "z:/Projects/"))
+    (set-register ?c (cons 'file "~/.emacs.d/init.org"))
+    (set-register ?o (cons 'file "z:/orgmode"))
   #+END_SRC
