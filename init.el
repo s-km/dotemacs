@@ -89,7 +89,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (magit gruvbox-theme company-jedi virtualenvwrapper elpy haskell-mode zenburn-theme sunburn-theme dracula-theme cyberpunk-theme neotree telephone-line-config telephone-line yasnippet company helm evil-surround evil-leader evil use-package))))
+    (racket-mode helm-projectile smartparens-config smartparens alchemist elixir-mode ubaryd-theme intero rainbow-mode js2-mode magit gruvbox-theme company-jedi virtualenvwrapper elpy haskell-mode zenburn-theme sunburn-theme dracula-theme cyberpunk-theme neotree telephone-line-config telephone-line yasnippet company helm evil-surround evil-leader evil use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

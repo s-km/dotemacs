@@ -4,3 +4,6 @@ backup/
 elpa/
 eshell/
 server/
+projectile-bookmarks.eld
+projectile.cache
+recentf

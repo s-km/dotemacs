@@ -2,7 +2,7 @@
 
 * About
 
-  I decided to give the [[https:en.wikipedia.org/wiki/Literate_programming][literate programming]] meme a try, since it seems
+  I decided to give the [[https://en.wikipedia.org/wiki/Literate_programming][literate programming]] meme a try, since it seems
   pretty suited to things like this where the basic structure/skeleton
   of the code (hopefully) doesn't change around much and it's easy to
   forget what each little function or variable does. I also wanted an
@@ -21,7 +21,7 @@
 * Init
 
   Entry point for =my/load-literate-config=, idea stolen from
-  [[https:github.com/wasamasa][wasamasa]]. Not really much faster thatn just using =org-babel= but the
+  [[https://github.com/wasamasa][wasamasa]]. Not really much faster thatn just using =org-babel= but the
   error messages are a lot easier to work with, so I'm sticking to it
   for now.
 
@@ -37,8 +37,8 @@
     (package-initialize)
     (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 
-    (setq exec-path (append exec-path '("c:/Program Files/git/mingw64/bin/git.exe"
-                                        "c:/Program Files/git/usr/bin/")))
+    (setq exec-path (append exec-path '("c:/Program Files/Git/mingw64/bin/"
+                                        "c:/Program Files/Git/usr/bin/")))
 
     (unless (package-installed-p 'use-package)
       (package-refresh-contents)
@@ -53,37 +53,27 @@
 ** Appearance
 
    #+BEGIN_SRC emacs-lisp
-    (load-theme 'gruvbox t)
+     (menu-bar-mode -1)
+     (tool-bar-mode -1)
+     (scroll-bar-mode -1)
 
-    (setq ring-bell-function 'ignore)
+     (setq indicate-empty-lines t)
 
-    (setq-default indicate-empty-lines t
-                  indent-tabs-mode nil
-                  tab-width 2)
+     (global-linum-mode t)
+     ;;(line-number-mode t)
+     (global-hl-line-mode t)
 
-    (set-fringe-mode '(0 . 0))
+     (add-to-list 'default-frame-alist '(internal-border . 0))
 
-    (prefer-coding-system 'utf-8)
-    (setq inhibit-compacting-font-caches t)
+     (display-time-mode t)
+     (setq display-time-24hr-format t)
 
-    (setq linum-format " %d ")
-    (global-linum-mode t)
-
-    (menu-bar-mode -1)
-    (tool-bar-mode -1)
-    (scroll-bar-mode -1)
-
-    (setq show-paren-delay 0)
-    (show-paren-mode t)
-
-    (column-number-mode t)
-  #+END_SRC
-
-** Backup
-
-   #+BEGIN_SRC emacs-lisp
-     (setq backup-directory-alist
-           '(("." . "~/.emacs.d/backup")))
+     (set-face-attribute 'default nil
+                         :family  "Terminus"
+                         :height  90
+                         :weight  'normal
+                         :width   'normal)
+     (load-theme 'gruvbox t)
    #+END_SRC
 
 ** Startup Behaviour
@@ -94,13 +84,33 @@
            inhibit-startup-message t
            inhibit-startup-echo-area-message t)
 
-    (setq debug-on-error t)
+     (setq show-paren-delay 0)
+     (show-paren-mode t)
+
+     (setq debug-on-error t)
    #+END_SRC
 
 ** Better Defaults
 
    #+BEGIN_SRC emacs-lisp
+     (prefer-coding-system 'utf-8)
+
+     ;; set up a central backup directory
+     (setq backup-directory-alist
+           '(("." . "~/.emacs.d/backup")))
+
+     ;; prompt with y/n instead of yes/no
      (fset 'yes-or-no-p 'y-or-n-p)
+
+     ;; keep cache from being compacted every GC because windows a shit
+     (setq inhibit-compacting-font-caches t)
+
+     ;; replace tabs with spaces, indent using 2 spaces
+     (setq-default indent-tabs-mode nil
+                   tab-width 2)
+
+     ;; get rid of spammy bell
+     (setq ring-bell-function 'ignore)
    #+END_SRC
 
 * Packages
@@ -132,6 +142,19 @@
 *** Neotree
 
     #+BEGIN_SRC emacs-lisp
+      (defun neotree-project-dir ()
+        "Open NeoTree using git root."
+        (interactive)
+        (let ((project-dir (projectile-project-root))
+              (file-name (buffer-file-name)))
+          (neotree-toggle)
+          (if project-dir
+              (if (neo-global--window-exists-p)
+                  (progn
+                    (neotree-dir project-dir)
+                    (neotree-find file-name)))
+            (message "Could not find git project root."))))
+
       (use-package neotree
         :init
         (add-hook 'neotree-mode-hook
@@ -142,7 +165,7 @@
                     (evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-change-root)))
 
         :config
-        (global-set-key [f8] 'neotree-toggle)
+        (global-set-key [f10] 'neotree-project-dir)
         (setq neo-theme 'arrow))
     #+END_SRC
 
@@ -150,7 +173,7 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package company
-       :diminish company-mode
+       :diminish company
        :config
        (global-company-mode)
 
@@ -170,9 +193,9 @@
        "<leader> bindings for evil"
        (evil-leader/set-leader ",")
        (evil-leader/set-key
-         "," 'other-window
-         "x" 'helm-M-x
-         "i" 'helm-imenu))
+         "i" 'helm-imenu
+         "," 'helm-mini
+         "x" 'helm-M-x))
 
      (use-package evil
        :config
@@ -188,14 +211,14 @@
          :config
          (global-evil-surround-mode)))
 
-     (evil-add-hjkl-bindings occur-mode-map 'emacs
+     (evil-add-hjkl-bindings occur-mode 'emacs
        (kbd "/") 'evil-search-forward
        (kbd "n") 'evil-search-next
        (kbd "N") 'evil-search-previous
        (kbd "C-d") 'evil-scroll-down
        (kbd "C-u") 'evil-scroll-up)
 
-     (evil-add-hjkl-bindings package-menu-mode-map 'emacs)
+     (evil-add-hjkl-bindings package-menu-mode 'emacs)
    #+END_SRC
 
 ** Helm
@@ -203,23 +226,63 @@
    #+BEGIN_SRC emacs-lisp
      (use-package helm
        :config
+       (setq helm-M-x-fuzzy-match t
+             helm-buffers-fuzzy-matching t)
+       (use-package helm-projectile)
        (helm-mode t)
-       (setq helm-M-x-fuzzy-match t))
+       (helm-projectile-on))
    #+END_SRC
 
 ** Magit
 
    #+BEGIN_SRC emacs-lisp
-     (use-package magit)
+     (use-package magit
+       :defer t)
    #+END_SRC
 
 ** Languages
+*** Elixir
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package elixir-mode
+        :hook (elixir-mode . alchemist-mode)
+        :defer t)
+
+      (use-package alchemist
+        :defer t)
+    #+END_SRC
+
 *** Haskell
 
     #+BEGIN_SRC emacs-lisp
       (use-package haskell-mode
         :mode "\\.hs\\'"
+        :hook (haskell-mode . intero-mode)
         :defer t)
+
+      (use-package intero
+        :defer t)
+    #+END_SRC
+
+*** Javascript
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package js2-mode
+        :mode "\\.js\\'"
+        :defer t
+        :config
+        (setq js2-basic-offset 2)
+        (setq js2-strict-missing-semi-warning nil)
+        (setq js2-bounce-indent-p t))
+
+      (use-package css-mode
+        :ensure nil
+        :hook (css-mode . rainbow-mode)
+        :config
+        (use-package rainbow-mode
+          :defer t)
+        (setq css-indent-offset 2))
+
     #+END_SRC
 
 *** Python
@@ -229,20 +292,56 @@
         :defer t
         :hook (python-mode . elpy-mode)
         :config
-        (elpy-enable))
+        (elpy-enable)
+        (setq elpy-rpc-backend "jedi"))
+
+      (defun my/common-installs ()
+        (shell-command "pip install jedi autopep8 yapf"))
 
       (use-package virtualenvwrapper
         :defer t
+        :hook (venv-postmkvirtualenv . my/common-installs)
         :config
         (venv-initialize-eshell))
     #+END_SRC
 
+*** Scala
+
+    #+BEGIN_SRC emacs-lisp
+
+    #+END_SRC
+
+*** Racket
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package racket-mode
+        :mode "\\.rkt\\'"
+        :defer t)
+    #+END_SRC
+
 ** Novel
+** Projectile
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package projectile
+       :config
+       (projectile-global-mode))
+   #+END_SRC
+
+** Smartparens
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package smartparens
+       :config
+       (smartparens-global-mode t))
+   #+END_SRC
+
 ** Yasnippet
 
    #+BEGIN_SRC emacs-lisp
      (use-package yasnippet
        :defer t
+       :diminish yas
        :mode ("/\\.emacs\\.d/snippets/" . snippet-mode)
        :init
        (yas-global-mode t)
@@ -265,6 +364,14 @@
     (setq org-src-fontify-natively t
           org-hide-emphasis-markers t
           org-src-tab-acts-natively t)
+
+    (global-set-key (kbd "C-c c") 'org-capture)
+    (setq org-default-notes-file "z:/orgmode/notes.org")
+    (setq org-capture-templates
+          '(("t" "Todo" entry (file+headline "~/org/gtd.org" "Tasks")
+             "* TODO %?\n  %i\n  %a")
+            ("e" "Empty" entry (file+datetree (concat org-directory "/mem.org"))
+             "* %^{Description} %^g\n%?\nAdded: %U")))
   #+END_SRC
 
 * IRC
@@ -283,13 +390,21 @@
         (load-file "~/.emacs.d/init.el")))
   #+END_SRC
 
-* Shortcuts and Keybindings
+* Keybindings
 
   #+BEGIN_SRC emacs-lisp
-    (global-set-key [(control tab)] 'other-window)
+    (global-set-key [C-tab] 'other-window)
+    (global-set-key [C-S-tab] (lambda () (interactive) (other-window -1)))
     (global-set-key (kbd "M-x") 'helm-M-x)
 
+  #+END_SRC~/.emacs.d/
+
+* Registers
+
+  #+BEGIN_SRC emacs-lisp
     (set-register ?p (cons 'file "z:/Projects/"))
     (set-register ?c (cons 'file "~/.emacs.d/init.org"))
     (set-register ?o (cons 'file "z:/orgmode"))
+    (set-register ?s (cons 'file "z:/Projects/scratchpads"))
+    (set-register ?m (cons 'file "m:/"))
   #+END_SRC
